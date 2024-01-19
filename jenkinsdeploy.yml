@@ -1,0 +1,177 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    meta.helm.sh/release-name: jenkins
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2024-01-17T10:21:48Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: jenkins
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/version: 2.414.3
+    helm.sh/chart: jenkins-12.4.2
+  name: jenkins
+  namespace: default
+  resourceVersion: "222786"
+  uid: 6f5b1670-6446-4a95-bcd3-0e93462833c8
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: jenkins
+      app.kubernetes.io/name: jenkins
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/secrets: e1b66512a38f5d7bbd9a2eed2341bff57d9881782f4200d7d19ad3db443f878c
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/component: jenkins-controller
+        app.kubernetes.io/instance: jenkins
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: jenkins
+        app.kubernetes.io/version: 2.414.3
+        helm.sh/chart: jenkins-12.4.2
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: jenkins-controller
+                  app.kubernetes.io/instance: jenkins
+                  app.kubernetes.io/name: jenkins
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      containers:
+      - env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: BITNAMI_DEBUG
+          value: "false"
+        - name: JENKINS_USERNAME
+          value: user
+        - name: JENKINS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: jenkins-password
+              name: jenkins
+        - name: JENKINS_HOME
+          value: /bitnami/jenkins/home
+        - name: JENKINS_SKIP_BOOTSTRAP
+          value: "no"
+        - name: JENKINS_HOST
+        - name: JENKINS_EXTERNAL_HTTP_PORT_NUMBER
+          value: "80"
+        - name: JENKINS_EXTERNAL_HTTPS_PORT_NUMBER
+          value: "443"
+        - name: JENKINS_PLUGINS_LATEST
+          value: "true"
+        - name: JENKINS_PLUGINS_LATEST_SPECIFIED
+          value: "false"
+        - name: JENKINS_SKIP_IMAGE_PLUGINS
+          value: "false"
+        - name: JENKINS_OVERRIDE_PLUGINS
+          value: "false"
+        image: localhost:32000/jenkins:thirt
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /login
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: jenkins
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8443
+          name: https
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /login
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 300m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          seLinuxOptions: {}
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /bitnami/jenkins
+          name: jenkins-data
+        - mountPath: /var/run/docker.sock
+          name: docker-sock-volume
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+      serviceAccount: jenkins
+      serviceAccountName: jenkins
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: jenkins-data
+        persistentVolumeClaim:
+          claimName: jenkins
+      - name: docker-sock-volume
+        hostPath:
+          path: /var/run/docker.sock
+          type: File
+status:
+  conditions:
+  - lastTransitionTime: "2024-01-17T10:21:48Z"
+    lastUpdateTime: "2024-01-17T10:21:48Z"
+    message: Deployment does not have minimum availability.
+    reason: MinimumReplicasUnavailable
+    status: "False"
+    type: Available
+  - lastTransitionTime: "2024-01-17T10:21:48Z"
+    lastUpdateTime: "2024-01-17T10:21:48Z"
+    message: ReplicaSet "jenkins-668f5f5ff8" is progressing.
+    reason: ReplicaSetUpdated
+    status: "True"
+    type: Progressing
+  observedGeneration: 1
+  replicas: 1
+  unavailableReplicas: 1
+  updatedReplicas: 1

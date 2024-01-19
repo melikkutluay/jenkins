@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+spec:
+  selector:
+    matchLabels:
+      app: jenkins
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+        - name: jenkins
+          image: docker.io/bitnami/jenkins:2.426.1-debian-11-r3
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: BITNAMI_DEBUG
+              value: 'false'
+            - name: JENKINS_USERNAME
+              value: user
+            - name: JENKINS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: jenkins-password
+                  name: jenkins
+            - name: JENKINS_HOME
+              value: /bitnami/jenkins/home
+            - name: JENKINS_SKIP_BOOTSTRAP
+              value: 'no'
+            - name: JENKINS_HOST
+            - name: JENKINS_EXTERNAL_HTTP_PORT_NUMBER
+              value: '80'
+            - name: JENKINS_EXTERNAL_HTTPS_PORT_NUMBER
+              value: '443'
+            - name: JENKINS_PLUGINS_LATEST
+              value: 'true'
+            - name: JENKINS_PLUGINS_LATEST_SPECIFIED
+              value: 'false'
+            - name: JENKINS_SKIP_IMAGE_PLUGINS
+              value: 'false'
+            - name: JENKINS_OVERRIDE_PLUGINS
+              value: 'false'
+          ports:
+            - name: http-port
+              containerPort: 8080
+            - name: jnlp-port
+              containerPort: 50000
+          volumeMounts:
+            - name: jenkins-home 
+              mountPath: /var/jenkins_home/
+            - mountPath: /var/run/docker.sock
+              name: docker-sock-volume
+      volumes:
+        - name: jenkins-home
+          persistentVolumeClaim:
+            claimName: nfs-pvc
+        - name: docker-sock-volume
+          hostPath:
+            path: /var/run/docker.sock
+            type: File
